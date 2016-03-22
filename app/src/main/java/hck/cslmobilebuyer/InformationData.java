@@ -34,7 +34,7 @@ public class InformationData {
         buildNo = "";
         strNo = "123";
         strName = "HK";
-        deliveryStCatDescSelect = "";
+        deliveryStCatDescSelect = "ST";
         areaSelectDelivery = "HK";
         districtSelectDelivery = "124";
         sectionSelectDelivery = "ZZZZ";

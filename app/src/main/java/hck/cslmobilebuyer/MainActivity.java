@@ -7,16 +7,21 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
     WebView webView;
     Context context;
     String URL;
     String[] selectedPhones = {"402000923", "402000925", "402000924"};
-    String S7EdgePage = "https://shop.hkt.com/MobOs/stsadditem.html?modelId=609";
-    String informationPage = "https://shop.hkt.com/MobOs/stspersondtl.html";
+    final String S7EdgePage = "https://shop.hkt.com/MobOs/stsadditem.html?modelId=609";
+    final String S7Page = "https://shop.hkt.com/MobOs/stsadditem.html?modelId=608";
+    final String informationPage = "https://shop.hkt.com/MobOs/stspersondtl.html";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,29 +30,94 @@ public class MainActivity extends AppCompatActivity {
 
         context = this;
 
+        webView = (WebView) findViewById(R.id.webView);
+
+        URL = S7Page;
+//        URL = "http://ddns.toraou.com:8888/TestHtml/csl%20Online%20Shop.html";
 //        URL = "https://shop.hkt.com/MobOs/stsadditem.html?modelId=609";
-        URL = "https://shop.hkt.com/MobOs/stsadditem.html?modelId=608";
 //        String url = "https://www.hkcsl.com/tc/online-shop-standalone-handset-price/";
 //        String url = "http://www.baidu.com";
 //        String url = "http://ddns.toraou.com:8888/TestHtml/csl%20Online%20Shop.html";
-        CookieSyncManager cookieSyncMngr = CookieSyncManager.createInstance(context);
-        CookieManager cookieManager = CookieManager.getInstance();
-        cookieManager.removeAllCookie();
 
-        webView = (WebView) findViewById(R.id.webView);
+        clearCookie();
+
         webView.getSettings().setJavaScriptEnabled(true);
-//        webView.clearCache(true);
-//        webView.clearHistory();
+//        webView.requestFocus(View.FOCUS_DOWN);
+//        webView.getSettings().setSavePassword(false);
+//        webView.getSettings().setSaveFormData(false);
+//        handleOnloadError();
+
+//        webView.getSettings().setRenderPriority(WebSettings.RenderPriority.HIGH);
+//        webView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+//        JsHandler _jsHandler = new JsHandler(this, webView);
+//        webView.addJavascriptInterface(_jsHandler, "JsHandler");
+
         webView.loadUrl(URL);
 
 //        setWebView(selectPhone(selectedPhones[2]));
         setWebView(null);
     }
 
+    final class ObjectExtension {
+        @JavascriptInterface
+        public void onLoad() {
+            onLoadCompleted();
+        }
+    }
+
+    public void onLoadCompleted() {
+        String url = webView.getUrl();
+        if (url.equalsIgnoreCase(URL)) {
+            webView.loadUrl("javascript:(function() { " +
+                    selectPhone("402000922") +
+                    "})()");
+        }else if (url.equalsIgnoreCase(informationPage)){
+            webView.loadUrl("javascript:(function() { " +
+                    inputInformation(new InformationData()) +
+                    "})()");
+        }else{
+            Toast.makeText(context, url, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public void handleOnloadError(){
+        webView.addJavascriptInterface(new ObjectExtension(), "webviewScriptAPI");
+        String fulljs = "javascript:(\n    function() { \n";
+        fulljs += "        window.onload = function() {\n";
+        fulljs += "            webviewScriptAPI.onLoad();\n";
+        fulljs += "        };\n";
+        fulljs += "    })()\n";
+        webView.loadUrl(fulljs);
+    }
+
+    public void clearCookie(){
+        CookieSyncManager.createInstance(this);
+        CookieSyncManager.getInstance().startSync();
+        CookieManager.getInstance().removeSessionCookie();
+//        CookieSyncManager cookieSyncMngr = CookieSyncManager.createInstance(context);
+//        CookieManager cookieManager = CookieManager.getInstance();
+//        cookieManager.removeAllCookie();
+
+//        webView.clearCache(true);
+//        webView.clearHistory();
+    }
+
     public void setWebView(final String javaScript){
         webView.setWebViewClient(new WebViewClient() {
 //            @Override
+//            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+//                view.loadUrl(url);
+//                return true;
+//
+//            }
+
+//            @Override
 //            public void onLoadResource(WebView view, String url){
+//            }
+
+//            @Override
+//            public void onPageStarted(WebView view, String url, Bitmap favicon){
+//
 //            }
 
             @Override
@@ -61,8 +131,26 @@ public class MainActivity extends AppCompatActivity {
                     view.loadUrl("javascript:(function() { " +
                             inputInformation(new InformationData()) +
                             "})()");
+                }else{
+                    Toast.makeText(context, url, Toast.LENGTH_LONG).show();
                 }
+                super.onPageFinished(view, url);
             }
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error){
+                super.onReceivedError(view, request, error);
+                Toast.makeText(context, "Received error "+error, Toast.LENGTH_LONG).show();
+            }
+
+//            @Override
+//            public void onReceivedSslError(WebView view,
+//                                           SslErrorHandler handler, SslError error) {
+//                // TODO Auto-generated method stub
+//                super.onReceivedSslError(view, handler, error);
+//                Toast.makeText(context, "Received error "+error, Toast.LENGTH_LONG).show();
+//
+//            }
         });
     }
 
@@ -72,8 +160,8 @@ public class MainActivity extends AppCompatActivity {
         return javaScript;
     }
 
-    private String forward(){
-        String javaScript = "window.location.href = 'https://shop.hkt.com/MobOs/stsadditem.html?modelId=609';";
+    private String forward(String url){
+        String javaScript = "window.location.href = '"+url+"';";
         return javaScript;
     }
 
@@ -100,37 +188,60 @@ public class MainActivity extends AppCompatActivity {
 //        javaScript += "if(price.is(':checked') === false) {";
 //        javaScript += "price.filter('[value=1]').prop('checked', true);";
 //        javaScript += "}";
-        javaScript += "var runSAHS = function () {";
-        javaScript += "var r = $.Deferred();";
-        javaScript += "$('#sahsButton').click();";
-        javaScript += "setTimeout(function () {r.resolve();}, 1000);";
-        javaScript += "return r;";
-        javaScript += "};";
 
-        javaScript += "var runPromo = function () {";
-        javaScript += "var r = $.Deferred();";
-//        javaScript += "$('body').append('test');";
-//        javaScript += "$('body').append( $('#dialog-promoCode').parent().css('display'));";
+        javaScript += "$('#sahsButton').click();";
+        javaScript += "var checkoutInterval = null;";
+
+        javaScript += "var promoInterval = setInterval(function () {";
         javaScript += "if ($('#dialog-promoCode').parent().css('display') != 'none'){";
         javaScript += "$('#promoCode').val('SPECIAL');";
         javaScript += "$('#submitButton').click();";
-        javaScript += "}";
-        javaScript += "setTimeout(function () {r.resolve();}, 1000);";
-        javaScript += "return r;";
-        javaScript += "};";
+        javaScript += "clearInterval(promoInterval);";
 
-        javaScript += "var runCheckout = function () {";
-        javaScript += "var r = $.Deferred();";
+        javaScript += "checkoutInterval = setInterval(function () {";
         javaScript += "if ($('#dialog-cart').parent().css('display') != 'none'){";
         javaScript += "$('#checkoutButton').click();";
+        javaScript += "clearInterval(checkoutInterval);";
         javaScript += "}";
-        javaScript += "setTimeout(function () {r.resolve();}, 1000);";
-        javaScript += "return r;";
-        javaScript += "};";
+        javaScript += "},1000);";
+
+        javaScript += "}";
+        javaScript += "},1000);";
+//
+//        javaScript += "clearInterval(promoInterval).delay(30000);";
+//        javaScript += "clearInterval(checkoutInterval).delay(30000);";
+
+//        javaScript += "var runSAHS = function () {";
+//        javaScript += "var r = $.Deferred();";
+//        javaScript += "$('#sahsButton').click();";
+//        javaScript += "setTimeout(function () {r.resolve();}, 1000);";
+//        javaScript += "return r;";
+//        javaScript += "};";
+
+//        javaScript += "var runPromo = function () {";
+//        javaScript += "var r = $.Deferred();";
+////        javaScript += "$('body').append('test');";
+////        javaScript += "$('body').append( $('#dialog-promoCode').parent().css('display'));";
+//        javaScript += "if ($('#dialog-promoCode').parent().css('display') != 'none'){";
+//        javaScript += "$('#promoCode').val('SPECIAL');";
+//        javaScript += "$('#submitButton').click();";
+//        javaScript += "}";
+//        javaScript += "setTimeout(function () {r.resolve();}, 1000);";
+//        javaScript += "return r;";
+//        javaScript += "};";
+
+//        javaScript += "var runCheckout = function () {";
+//        javaScript += "var r = $.Deferred();";
+//        javaScript += "if ($('#dialog-cart').parent().css('display') != 'none'){";
+//        javaScript += "$('#checkoutButton').click();";
+//        javaScript += "}";
+//        javaScript += "setTimeout(function () {r.resolve();}, 1000);";
+//        javaScript += "return r;";
+//        javaScript += "};";
 
 //        javaScript += "runSAHS().done(runPromo().done(runCheckout));";
-        javaScript += "runSAHS().done(runPromo);";
-        javaScript += "runPromo().done(runCheckout);";
+//        javaScript += "runSAHS().done(runPromo);";
+//        javaScript += "runPromo().done(runCheckout);";
 
         return javaScript;
     }
@@ -151,32 +262,81 @@ public class MainActivity extends AppCompatActivity {
         javaScript += "$('#strName').val('"+data.getStrName()+"');";
         javaScript += "$('#deliveryStCatDescSelect').val('"+data.getDeliveryStCatDescSelect()+"');";
 
-        javaScript += "var selectArea = function () {";
-        javaScript += "var r = $.Deferred();";
-        javaScript += "$('#areaSelectDelivery').val('"+data.getAreaSelectDelivery()+"');";
-//        javaScript += "$('#areaSelectDelivery').change();";
-        javaScript += "setTimeout(function () {r.resolve();}, 2500);";
-        javaScript += "return r;";
-        javaScript += "};";
+        javaScript += "$('#areaSelectDelivery').val('"+data.getAreaSelectDelivery()+"').change();";
 
-        javaScript += "var selectDistrict = function () {";
-        javaScript += "var r = $.Deferred();";
-        javaScript += "$('#districtSelectDelivery').val('"+data.getDistrictSelectDelivery()+"');";
-        javaScript += "setTimeout(function () {r.resolve();}, 2500);";
-        javaScript += "return r;";
-        javaScript += "};";
+        javaScript += "$('#districtSelectDelivery').val('"+data.getDistrictSelectDelivery()+"').change();";
 
-        javaScript += "var selectSection = function () {";
-        javaScript += "var r = $.Deferred();";
         javaScript += "$('#sectionSelectDelivery').val('"+data.getSectionSelectDelivery()+"');";
         javaScript += "$('#deliveryDateDP').val('"+data.getDeliveryDateDP()+"');";
         javaScript += "$('#timeslotList').val('"+data.getTimeslotList()+"');";
         javaScript += "$('input[type=checkbox]').prop('checked', true);";
-        javaScript += "setTimeout(function () {r.resolve();}, 2500);";
-        javaScript += "return r;";
-        javaScript += "};";
 
-        javaScript += "selectArea().done(selectDistrict().done(selectSection));";
+        javaScript += "var StCatInterval = setInterval(function () {";
+        javaScript += "if ($('#deliveryStCatDescSelect').val() != '"+data.getDeliveryStCatDescSelect()+"'){";
+        javaScript += "$('#deliveryStCatDescSelect').val('"+data.getDeliveryStCatDescSelect()+"').change();";
+        javaScript += "if ($('#deliveryStCatDescSelect').val() == '"+data.getDeliveryStCatDescSelect()+"')";
+        javaScript += "clearInterval(StCatInterval);";
+        javaScript += "}";
+        javaScript += "},1000);";
+
+        javaScript += "var areaInterval = setInterval(function () {";
+        javaScript += "if ($('#areaSelectDelivery').val() != '"+data.getAreaSelectDelivery()+"'){";
+        javaScript += "$('#areaSelectDelivery').val('"+data.getAreaSelectDelivery()+"').change();";
+        javaScript += "if ($('#areaSelectDelivery').val() == '"+data.getAreaSelectDelivery()+"')";
+        javaScript += "clearInterval(areaInterval);";
+        javaScript += "}";
+        javaScript += "},1000);";
+
+        javaScript += "var districtInterval = setInterval(function () {";
+        javaScript += "if ($('#districtSelectDelivery').val() != '"+data.getDistrictSelectDelivery()+"'){";
+        javaScript += "$('#districtSelectDelivery').val('"+data.getDistrictSelectDelivery()+"').change();";
+        javaScript += "if ($('#districtSelectDelivery').val() == '"+data.getDistrictSelectDelivery()+"')";
+        javaScript += "clearInterval(districtInterval);";
+        javaScript += "}";
+        javaScript += "},1000);";
+
+        javaScript += "var sectionInterval = setInterval(function () {";
+        javaScript += "if ($('#sectionSelectDelivery').val() != '"+data.getSectionSelectDelivery()+"' || $('#timeslotList').val() != '"+data.getTimeslotList()+"'){";
+        javaScript += "$('#sectionSelectDelivery').val('"+data.getSectionSelectDelivery()+"').change();";
+        javaScript += "$('#deliveryDateDP').val('"+data.getDeliveryDateDP()+"');";
+        javaScript += "$('#timeslotList').val('"+data.getTimeslotList() +"').change();";
+        javaScript += "$('input[type=checkbox]').prop('checked', true);";
+        javaScript += "if ($('#sectionSelectDelivery').val() == '"+data.getSectionSelectDelivery()+"' && $('#timeslotList').val() != '"+data.getTimeslotList()+"'){";
+        javaScript += "$('#stsRegForm').submit();";
+        javaScript += "clearInterval(sectionInterval);";
+//        javaScript += "$('button[type=submit]').click();";
+//        javaScript += "document.forms['chin'].submit();";
+//        javaScript += "submitChin();";
+        javaScript += "}";
+        javaScript += "}";
+        javaScript += "},1000);";
+
+//        javaScript += "var selectArea = function () {";
+//        javaScript += "var r = $.Deferred();";
+//        javaScript += "$('#areaSelectDelivery').val('"+data.getAreaSelectDelivery()+"');";
+////        javaScript += "$('#areaSelectDelivery').change();";
+//        javaScript += "setTimeout(function () {r.resolve();}, 2500);";
+//        javaScript += "return r;";
+//        javaScript += "};";
+
+//        javaScript += "var selectDistrict = function () {";
+//        javaScript += "var r = $.Deferred();";
+//        javaScript += "$('#districtSelectDelivery').val('"+data.getDistrictSelectDelivery()+"');";
+//        javaScript += "setTimeout(function () {r.resolve();}, 2500);";
+//        javaScript += "return r;";
+//        javaScript += "};";
+//
+//        javaScript += "var selectSection = function () {";
+//        javaScript += "var r = $.Deferred();";
+//        javaScript += "$('#sectionSelectDelivery').val('"+data.getSectionSelectDelivery()+"');";
+//        javaScript += "$('#deliveryDateDP').val('"+data.getDeliveryDateDP()+"');";
+//        javaScript += "$('#timeslotList').val('"+data.getTimeslotList()+"');";
+//        javaScript += "$('input[type=checkbox]').prop('checked', true);";
+//        javaScript += "setTimeout(function () {r.resolve();}, 2500);";
+//        javaScript += "return r;";
+//        javaScript += "};";
+//
+//        javaScript += "selectArea().done(selectDistrict().done(selectSection));";
         return javaScript;
     }
 
