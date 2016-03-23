@@ -3,6 +3,7 @@ package hck.cslmobilebuyer;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.CookieManager;
@@ -22,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     final String S7EdgePage = "https://shop.hkt.com/MobOs/stsadditem.html?modelId=609";
     final String S7Page = "https://shop.hkt.com/MobOs/stsadditem.html?modelId=608";
     final String informationPage = "https://shop.hkt.com/MobOs/stspersondtl.html";
+    final String conformPage = "https://shop.hkt.com/MobOs/stsconfirmation.html";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +77,10 @@ public class MainActivity extends AppCompatActivity {
             webView.loadUrl("javascript:(function() { " +
                     inputInformation(new InformationData()) +
                     "})()");
+        }else if (url.equalsIgnoreCase(conformPage)){
+            webView.loadUrl("javascript:(function() { " +
+                    conformInformation() +
+                    "})()");
         }else{
             Toast.makeText(context, url, Toast.LENGTH_LONG).show();
         }
@@ -127,20 +133,21 @@ public class MainActivity extends AppCompatActivity {
                     view.loadUrl("javascript:(function() { " +
                             selectPhone("402000922") +
                             "})()");
-                }else if (url.equalsIgnoreCase(informationPage)){
+                } else if (url.equalsIgnoreCase(informationPage)) {
                     view.loadUrl("javascript:(function() { " +
                             inputInformation(new InformationData()) +
                             "})()");
-                }else{
+                } else {
+                    Log.w("hck new url", url);
                     Toast.makeText(context, url, Toast.LENGTH_LONG).show();
                 }
                 super.onPageFinished(view, url);
             }
 
             @Override
-            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error){
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
-                Toast.makeText(context, "Received error "+error, Toast.LENGTH_LONG).show();
+                Toast.makeText(context, "Received error " + error, Toast.LENGTH_LONG).show();
             }
 
 //            @Override
@@ -249,11 +256,11 @@ public class MainActivity extends AppCompatActivity {
     private String inputInformation(InformationData data){
 //        String javaScript = "$('#customer.title"+((data.isMr())? "1":"2")+"').prop('checked', true);";
         String javaScript = "$('input[value="+((data.isMr())? "Mr":"Ms")+"]').prop('checked', true);";
-        javaScript += "$('#lastName').val('"+data.getLastName()+"');";
-        javaScript += "$('#firstName').val('"+data.getFirstName()+"');";
+        javaScript += "$('#lastName').val('" +data.getLastName()+"');";
+        javaScript += "$('#firstName').val('" + data.getFirstName()+"');";
         javaScript += "$('#contactPhone').val('"+data.getContactPhone()+"');";
-        javaScript += "$('#emailAddr').val('"+data.getEmailAddr()+"');";
-        javaScript += "$('#confirmEmailAddr').val('"+data.getEmailAddr()+"');";
+        javaScript += "$('#emailAddr').val('" + data.getEmailAddr()+"');";
+        javaScript += "$('#confirmEmailAddr').val('" + data.getEmailAddr()+"');";
         javaScript += "$('#cCHolderName').val('"+data.getcCHolderName()+"');";
         javaScript += "$('#unitNo').val('"+data.getUnitNo()+"');";
         javaScript += "$('#floorNo').val('"+data.getFloorNo()+"');";
@@ -302,14 +309,16 @@ public class MainActivity extends AppCompatActivity {
         javaScript += "$('#timeslotList').val('"+data.getTimeslotList() +"').change();";
         javaScript += "$('input[type=checkbox]').prop('checked', true);";
         javaScript += "if ($('#sectionSelectDelivery').val() == '"+data.getSectionSelectDelivery()+"' && $('#timeslotList').val() != '"+data.getTimeslotList()+"'){";
-        javaScript += "$('#stsRegForm').submit();";
         javaScript += "clearInterval(sectionInterval);";
-//        javaScript += "$('button[type=submit]').click();";
-//        javaScript += "document.forms['chin'].submit();";
-//        javaScript += "submitChin();";
         javaScript += "}";
         javaScript += "}";
         javaScript += "},1000);";
+
+        javaScript += "var submitInterval = setInterval(function () {";
+//        javaScript += "if ($('#sectionSelectDelivery').val() == '"+data.getSectionSelectDelivery()+"' && $('#timeslotList').val() != '"+data.getTimeslotList()+"'){";
+        javaScript += "$('button[name=submit]').click();";
+//        javaScript += "}";
+        javaScript += "},5000);";
 
 //        javaScript += "var selectArea = function () {";
 //        javaScript += "var r = $.Deferred();";
@@ -337,6 +346,20 @@ public class MainActivity extends AppCompatActivity {
 //        javaScript += "};";
 //
 //        javaScript += "selectArea().done(selectDistrict().done(selectSection));";
+        return javaScript;
+    }
+
+    private String conformInformation(){
+//        String javaScript = "$('#customer.title"+((data.isMr())? "1":"2")+"').prop('checked', true);";
+        String javaScript = "/MobOs/captcha.html";
+
+        javaScript += "$('#captchaInput').val('');";
+        javaScript += "$('#confirmed').prop('checked', true);";
+
+        javaScript += "var submitInterval = setInterval(function () {";
+        javaScript += "submitForm();";
+        javaScript += "},5000);";
+
         return javaScript;
     }
 
