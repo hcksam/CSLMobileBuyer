@@ -13,6 +13,7 @@ import android.webkit.CookieSyncManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -252,23 +253,23 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-//        webView.setWebViewClient(new WebViewClient() {
-//            @Override
-//            public void onPageFinished(WebView view, String url) {
-////                loadingUrl = url;
-////                if (url.equalsIgnoreCase(mainUrl)) {
-////                    loadJavaScript(view, selectPhone() + selectPhoneSubmit());
-////                } else if (url.equalsIgnoreCase(informationPage)) {
-////                    loadJavaScript(view, inputInformation());
-////                } else if (url.equalsIgnoreCase(conformPage)) {
-////                    loadJavaScript(view, conformInformation());
-////                } else {
-////                    Log.w("hck new url", url);
-////                    Toast.makeText(context, url, Toast.LENGTH_LONG).show();
-////                }
-//                super.onPageFinished(view, url);
-//            }
-//        });
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+//                loadingUrl = url;
+//                if (url.equalsIgnoreCase(mainUrl)) {
+//                    loadJavaScript(view, selectPhone() + selectPhoneSubmit());
+//                } else if (url.equalsIgnoreCase(informationPage)) {
+//                    loadJavaScript(view, inputInformation());
+//                } else if (url.equalsIgnoreCase(conformPage)) {
+//                    loadJavaScript(view, conformInformation());
+//                } else {
+//                    Log.w("hck new url", url);
+//                    Toast.makeText(context, url, Toast.LENGTH_LONG).show();
+//                }
+                super.onPageFinished(view, url);
+            }
+        });
 
 //        webView.setWebViewClient(new WebViewClient() {
 ////            @Override
@@ -448,22 +449,22 @@ public class MainActivity extends AppCompatActivity {
         String javaScript = "";
 
         javaScript += "$('#sahsButton').click();";
-//        javaScript += "var checkoutInterval = null;";
+        javaScript += "var checkoutInterval = null;";
 
-//        javaScript += "var promoInterval = setInterval(function () {";
-//        javaScript += "if ($('#dialog-promoCode').parent().css('display') != 'none'){";
+        javaScript += "var promoInterval = setInterval(function () {";
+        javaScript += "if ($('#dialog-promoCode').parent().css('display') != 'none'){";
         javaScript += "$('#promoCode').val('SPECIAL');";
         javaScript += "$('#submitButton').click();";
-//        javaScript += "clearInterval(promoInterval);";
-//        javaScript += "}";
-//        javaScript += "},2000);";
+        javaScript += "clearInterval(promoInterval);";
+        javaScript += "}";
+        javaScript += "},2000);";
 
-//        javaScript += "checkoutInterval = setInterval(function () {";
-//        javaScript += "if ($('#dialog-cart').parent().css('display') != 'none'){";
+        javaScript += "checkoutInterval = setInterval(function () {";
+        javaScript += "if ($('#dialog-cart').parent().css('display') != 'none'){";
         javaScript += "$('#checkoutButton').click();";
-//        javaScript += "clearInterval(checkoutInterval);";
-//        javaScript += "}";
-//        javaScript += "},2000);";
+        javaScript += "clearInterval(checkoutInterval);";
+        javaScript += "}";
+        javaScript += "},2000);";
 
         return javaScript;
     }
@@ -494,42 +495,42 @@ public class MainActivity extends AppCompatActivity {
         javaScript += "$('#timeslotList').val('"+data.getTimeslotList()+"');";
         javaScript += "$('input[type=checkbox]').prop('checked', true);";
 
-//        javaScript += "var StCatInterval = setInterval(function () {";
-//        javaScript += "if ($('#deliveryStCatDescSelect').val() != '"+data.getDeliveryStCatDescSelect()+"'){";
+        javaScript += "var StCatInterval = setInterval(function () {";
+        javaScript += "if ($('#deliveryStCatDescSelect').val() != '"+data.getDeliveryStCatDescSelect()+"'){";
         javaScript += "$('#deliveryStCatDescSelect').val('"+data.getDeliveryStCatDescSelect()+"').change();";
-//        javaScript += "}else{";
-//        javaScript += "clearInterval(StCatInterval);";
-//        javaScript += "}";
-//        javaScript += "},2000);";
+        javaScript += "}else{";
+        javaScript += "clearInterval(StCatInterval);";
+        javaScript += "}";
+        javaScript += "},2000);";
 
-//        javaScript += "var areaInterval = setInterval(function () {";
-//        javaScript += "if ($('#areaSelectDelivery').val() != '"+data.getAreaSelectDelivery()+"'){";
+        javaScript += "var areaInterval = setInterval(function () {";
+        javaScript += "if ($('#areaSelectDelivery').val() != '"+data.getAreaSelectDelivery()+"'){";
         javaScript += "$('#areaSelectDelivery').val('"+data.getAreaSelectDelivery()+"').change();";
-//        javaScript += "}else{";
-//        javaScript += "clearInterval(areaInterval);";
-//        javaScript += "}";
-//        javaScript += "},2000);";
+        javaScript += "}else{";
+        javaScript += "clearInterval(areaInterval);";
+        javaScript += "}";
+        javaScript += "},2000);";
 
-//        javaScript += "var districtInterval = setInterval(function () {";
-//        javaScript += "if ($('#districtSelectDelivery').val()!= '"+data.getDistrictSelectDelivery()+"'){";
+        javaScript += "var districtInterval = setInterval(function () {";
+        javaScript += "if ($('#districtSelectDelivery').val()!= '"+data.getDistrictSelectDelivery()+"'){";
         javaScript += "$('#districtSelectDelivery').val('"+data.getDistrictSelectDelivery()+"').change();";
-//        javaScript += "}else{";
-//        javaScript += "clearInterval(districtInterval);";
-//        javaScript += "}";
-//        javaScript += "},2000);";
+        javaScript += "}else{";
+        javaScript += "clearInterval(districtInterval);";
+        javaScript += "}";
+        javaScript += "},2000);";
 
-//        javaScript += "var sectionInterval = setInterval(function () {";
-//        javaScript += "if ($('#sectionSelectDelivery').val()!= '"+data.getSectionSelectDelivery()+"' || $('#timeslotList').val() != '"+data.getTimeslotList()+"'){";
+        javaScript += "var sectionInterval = setInterval(function () {";
+        javaScript += "if ($('#sectionSelectDelivery').val()!= '"+data.getSectionSelectDelivery()+"' || $('#timeslotList').val() != '"+data.getTimeslotList()+"'){";
         javaScript += "$('#sectionSelectDelivery').val('"+data.getSectionSelectDelivery()+"').change();";
         javaScript += "$('#deliveryDateDP').val('"+data.getDeliveryDateDP()+"');";
         javaScript += "$('#timeslotList').val('"+data.getTimeslotList() +"').change();";
         javaScript += "$('input[type=checkbox]').prop('checked', true);";
-//        javaScript += "}else{";
-//        javaScript += "clearInterval(sectionInterval);";
+        javaScript += "}else{";
+        javaScript += "clearInterval(sectionInterval);";
         javaScript += "$('button[name=submit]').focus();";
         javaScript += "Android.showToast('Auto fill complete!');";
-//        javaScript += "}";
-//        javaScript += "},2000);";
+        javaScript += "}";
+        javaScript += "},2000);";
 
 //        javaScript += "var submitInterval = setInterval(function () {";
 //        javaScript += "if ($('#deliveryStCatDescSelect').val() == '"+data.getDeliveryStCatDescSelect()+"' && $('#areaSelectDelivery').val() == '"+data.getAreaSelectDelivery()+"' && $('#districtSelectDelivery').val() == '"+data.getDistrictSelectDelivery()+"' && $('#sectionSelectDelivery').val() == '"+data.getSectionSelectDelivery()+"' && $('#timeslotList').val() == '"+data.getTimeslotList()+"'){";
