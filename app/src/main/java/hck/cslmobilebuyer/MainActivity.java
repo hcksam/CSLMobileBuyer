@@ -20,6 +20,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.HashMap;
@@ -33,9 +34,9 @@ public class MainActivity extends AppCompatActivity {
     Button autoFill;
     Button next;
     LinearLayout functionBar;
+    TextView loading;
 
     String mainUrl;
-    String loadingUrl;
     String selectedPhone;
     String selectedColor;
 //    String[] selectedPhones = {"402000923", "402000925", "402000924"};
@@ -90,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
         autoFill = (Button) findViewById(R.id.autoFill);
         next = (Button) findViewById(R.id.next);
         captchaImage = (ImageView) findViewById(R.id.captchaImage);
+        loading = (TextView) findViewById(R.id.loading);
 
         selectedPhone = "NOTE5";
         mainUrl = phoneMap.get(selectedPhone);
@@ -98,8 +100,6 @@ public class MainActivity extends AppCompatActivity {
 //        String url = "https://www.hkcsl.com/tc/online-shop-standalone-handset-price/";
 //        String url = "http://www.baidu.com";
 //        String url = "http://ddns.toraou.com:8888/TestHtml/csl%20Online%20Shop.html";
-
-        clearCookie();
 
         webView.getSettings().setJavaScriptEnabled(true);
         webView.addJavascriptInterface(new WebAppInterface(this), "Android");
@@ -221,21 +221,29 @@ public class MainActivity extends AppCompatActivity {
 //    };
 
     public void setWebView(){
-        loadingUrl = mainUrl;
         loadingCount = new HashMap<>();
         loadingCount.put(mainUrl, 0);
         loadingCount.put(informationPage, 0);
         loadingCount.put(conformPage, 0);
+        clearCookie();
 
         webView.loadUrl(mainUrl);
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onProgressChanged (WebView view, int newProgress){
                 String url = view.getUrl();
+
+//                if (newProgress == 0){
+//                    loading.setVisibility(View.VISIBLE);
+//                }
+
                 if (newProgress == 100){
                     int count = loadingCount.get(url);
 
                     if (count == 0) {
+                        if (loading.getVisibility() != View.VISIBLE){
+                            loading.setVisibility(View.VISIBLE);
+                        }
                         if (url.equalsIgnoreCase(mainUrl)) {
                             loadJavaScript(view, selectPhone() + selectPhoneSubmit());
                         } else if (url.equalsIgnoreCase(informationPage)) {
@@ -243,19 +251,21 @@ public class MainActivity extends AppCompatActivity {
                         } else if (url.equalsIgnoreCase(conformPage)) {
                             loadJavaScript(view, conformInformation());
                         } else {
-                            Log.w("hck new url", url);
+                            Log.w("hck newUrl", url);
 //                        Toast.makeText(context, url, Toast.LENGTH_LONG).show();
                         }
                         loadingCount.put(url, ++count);
-                    }else{
-                        Toast.makeText(context, url+"\n"+count, Toast.LENGTH_LONG).show();
                     }
+//                    else{
+//                        Toast.makeText(context, url+"\n"+count, Toast.LENGTH_LONG).show();
+//                    }
                 }
             }
         });
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
+//                loading.setVisibility(View.VISIBLE);
 //                loadingUrl = url;
 //                if (url.equalsIgnoreCase(mainUrl)) {
 //                    loadJavaScript(view, selectPhone() + selectPhoneSubmit());
@@ -457,14 +467,14 @@ public class MainActivity extends AppCompatActivity {
         javaScript += "$('#submitButton').click();";
         javaScript += "clearInterval(promoInterval);";
         javaScript += "}";
-        javaScript += "},2000);";
+        javaScript += "},1000);";
 
         javaScript += "checkoutInterval = setInterval(function () {";
         javaScript += "if ($('#dialog-cart').parent().css('display') != 'none'){";
         javaScript += "$('#checkoutButton').click();";
         javaScript += "clearInterval(checkoutInterval);";
         javaScript += "}";
-        javaScript += "},2000);";
+        javaScript += "},1000);";
 
         return javaScript;
     }
@@ -501,7 +511,7 @@ public class MainActivity extends AppCompatActivity {
         javaScript += "}else{";
         javaScript += "clearInterval(StCatInterval);";
         javaScript += "}";
-        javaScript += "},2000);";
+        javaScript += "},1000);";
 
         javaScript += "var areaInterval = setInterval(function () {";
         javaScript += "if ($('#areaSelectDelivery').val() != '"+data.getAreaSelectDelivery()+"'){";
@@ -509,7 +519,7 @@ public class MainActivity extends AppCompatActivity {
         javaScript += "}else{";
         javaScript += "clearInterval(areaInterval);";
         javaScript += "}";
-        javaScript += "},2000);";
+        javaScript += "},1000);";
 
         javaScript += "var districtInterval = setInterval(function () {";
         javaScript += "if ($('#districtSelectDelivery').val()!= '"+data.getDistrictSelectDelivery()+"'){";
@@ -517,7 +527,7 @@ public class MainActivity extends AppCompatActivity {
         javaScript += "}else{";
         javaScript += "clearInterval(districtInterval);";
         javaScript += "}";
-        javaScript += "},2000);";
+        javaScript += "},1000);";
 
         javaScript += "var sectionInterval = setInterval(function () {";
         javaScript += "if ($('#sectionSelectDelivery').val()!= '"+data.getSectionSelectDelivery()+"' || $('#timeslotList').val() != '"+data.getTimeslotList()+"'){";
@@ -528,9 +538,10 @@ public class MainActivity extends AppCompatActivity {
         javaScript += "}else{";
         javaScript += "clearInterval(sectionInterval);";
         javaScript += "$('button[name=submit]').focus();";
-        javaScript += "Android.showToast('Auto fill complete!');";
+        javaScript += "Android.hideLoading();";
+//        javaScript += "Android.showToast('Auto fill complete!');";
         javaScript += "}";
-        javaScript += "},2000);";
+        javaScript += "},1000);";
 
 //        javaScript += "var submitInterval = setInterval(function () {";
 //        javaScript += "if ($('#deliveryStCatDescSelect').val() == '"+data.getDeliveryStCatDescSelect()+"' && $('#areaSelectDelivery').val() == '"+data.getAreaSelectDelivery()+"' && $('#districtSelectDelivery').val() == '"+data.getDistrictSelectDelivery()+"' && $('#sectionSelectDelivery').val() == '"+data.getSectionSelectDelivery()+"' && $('#timeslotList').val() == '"+data.getTimeslotList()+"'){";
@@ -590,7 +601,8 @@ public class MainActivity extends AppCompatActivity {
 //        javaScript += "$('#captchaInput').val('');";
         javaScript += "$('#confirmed').prop('checked', true);";
         javaScript += "$('#captchaInput').focus();";
-        javaScript += "Android.showToast('Auto fill complete!');";
+        javaScript += "Android.hideLoading();";
+//        javaScript += "Android.showToast('Auto fill complete!');";
 
 //        javaScript += "var submitInterval = setInterval(function () {";
 //        javaScript += "submitForm();";
@@ -653,6 +665,19 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void showToast(String toast) {
             Toast.makeText(mContext, toast, Toast.LENGTH_SHORT).show();
+        }
+
+        @JavascriptInterface
+        public void hideLoading() {
+            runOnUiThread(new Runnable() {
+                public void run(){
+                    if (loading.getVisibility() != View.GONE) {
+                        loading.setVisibility(View.GONE);
+                    }
+                }
+            });
+
+            Toast.makeText(mContext, "Auto fill complete!", Toast.LENGTH_SHORT).show();
         }
     }
 }
