@@ -87,6 +87,8 @@ public class InformationActivity extends AppCompatActivity {
         deliveryDateDP.setText(data.getDeliveryDateDP());
         timeslotList.setText(data.getTimeslotList());
 
+        deliveryDateDP.setHint(InformationData.dateFormat.toPattern()+" (At least next working day)");
+
 //        lastName.setHint(placeHolder.getLastName());
 //        firstName.setHint(placeHolder.getFirstName());
 //        contactPhone.setHint(placeHolder.getContactPhone());

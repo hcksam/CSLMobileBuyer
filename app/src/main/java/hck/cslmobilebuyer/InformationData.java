@@ -2,13 +2,18 @@ package hck.cslmobilebuyer;
 
 import android.content.Context;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 /**
  * Created by hck on 21/3/2016.
  */
 public class InformationData {
     public final static int DataCount = 17;
+    public final static SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 
     private boolean isMr;
     private String lastName;
@@ -65,6 +70,13 @@ public class InformationData {
         districtSelectDelivery = data.get(c++);
         sectionSelectDelivery = data.get(c++);
         deliveryDateDP = data.get(c++);
+        try {
+            if (dateFormat.parse(deliveryDateDP).before(getNextDate())){
+                deliveryDateDP = getNextDay();
+            }
+        }catch (Exception e){
+            deliveryDateDP = getNextDay();
+        }
         timeslotList = data.get(c++);
     }
 
@@ -118,8 +130,38 @@ public class InformationData {
         areaSelectDelivery = "HK";
         districtSelectDelivery = "124";
         sectionSelectDelivery = "ZZZZ";
-        deliveryDateDP = "01/04/2016";
+        deliveryDateDP = getNextDay();
         timeslotList = "AM1";
+    }
+
+    public static String getNextDay(){
+        return dateFormat.format(getNextDate());
+    }
+
+    public static Date getNextDate(){
+        Date date;
+        date = addDays(new Date(), 1);
+        while (isHoliday(date)) {
+            date = addDays(date, 1);
+        }
+        return date;
+    }
+
+    public static Date addDays(Date d, int days) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(d);
+        cal.add(Calendar.DATE, days);
+        return cal.getTime();
+    }
+
+    public static boolean isHoliday(Date d) {
+        Calendar c = new GregorianCalendar();
+        c.setTime(d);
+        if((Calendar.SATURDAY == c.get(c.DAY_OF_WEEK)) || (Calendar.SUNDAY == c.get(c.DAY_OF_WEEK))) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public ArrayList<String> getData() {

@@ -2,9 +2,6 @@ package hck.cslmobilebuyer;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -13,6 +10,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
@@ -21,13 +19,10 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity {
@@ -38,11 +33,11 @@ public class MainActivity extends AppCompatActivity {
     Spinner colorSelect;
     Button autoFill;
     Button next;
+    LinearLayout functionBar;
 
     String mainUrl;
     String selectedPhone;
     String selectedColor;
-    InformationData data;
 //    String[] selectedPhones = {"402000923", "402000925", "402000924"};
 //    final String S7EdgePage = "https://shop.hkt.com/MobOs/stsadditem.html?modelId=609";
 //    final String S7Page = "https://shop.hkt.com/MobOs/stsadditem.html?modelId=608";
@@ -55,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
         HashMap<String, String> phoneMap = new HashMap<>();
         phoneMap.put("S7", "https://shop.hkt.com/MobOs/stsadditem.html?modelId=608");
         phoneMap.put("S7Edge", "https://shop.hkt.com/MobOs/stsadditem.html?modelId=609");
-
+        phoneMap.put("NOTE5", "https://shop.hkt.com/MobOs/stsadditem.html?modelId=543");
         return phoneMap;
     }
 
@@ -74,6 +69,10 @@ public class MainActivity extends AppCompatActivity {
         colorMap.put("鈦銀色", "402000924");
         phoneColorMap.put("S7Edge", colorMap);
 
+        colorMap = new HashMap<>();
+        colorMap.put("金色", "402000826");
+        phoneColorMap.put("NOTE5", colorMap);
+
         return phoneColorMap;
     }
 
@@ -84,15 +83,15 @@ public class MainActivity extends AppCompatActivity {
         context = this;
 
         webView = (WebView) findViewById(R.id.webView);
+        functionBar = (LinearLayout) findViewById(R.id.function);
         phoneSelect = (Spinner) findViewById(R.id.phoneSelect);
         colorSelect = (Spinner) findViewById(R.id.colorSelect);
         autoFill = (Button) findViewById(R.id.autoFill);
         next = (Button) findViewById(R.id.next);
         captchaImage = (ImageView) findViewById(R.id.captchaImage);
 
-        selectedPhone = "S7";
+        selectedPhone = "NOTE5";
         mainUrl = phoneMap.get(selectedPhone);
-        data = new InformationData(context);
 //        URL = "http://ddns.toraou.com:8888/TestHtml/csl%20Online%20Shop.html";
 //        URL = "https://shop.hkt.com/MobOs/stsadditem.html?modelId=609";
 //        String url = "https://www.hkcsl.com/tc/online-shop-standalone-handset-price/";
@@ -102,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
         clearCookie();
 
         webView.getSettings().setJavaScriptEnabled(true);
+        webView.addJavascriptInterface(new WebAppInterface(this), "Android");
 //        webView.requestFocus(View.FOCUS_DOWN);
 //        webView.getSettings().setSavePassword(false);
 //        webView.getSettings().setSaveFormData(false);
@@ -112,11 +112,8 @@ public class MainActivity extends AppCompatActivity {
 //        JsHandler _jsHandler = new JsHandler(this, webView);
 //        webView.addJavascriptInterface(_jsHandler, "JsHandler");
 
-        webView.loadUrl(mainUrl);
-
 //        setWebView(selectPhone(selectedPhones[2]));
 //        setWebView(null);
-        setWebView(0);
 
         ArrayAdapter phoneSelectAdapter = new ArrayAdapter(context,
                  android.R.layout.simple_spinner_item, phoneMap.keySet().toArray());
@@ -132,7 +129,6 @@ public class MainActivity extends AppCompatActivity {
                 // parent.getItemAtPosition(pos)
                 selectedPhone = String.valueOf(parent.getItemAtPosition(pos));
                 mainUrl = phoneMap.get(selectedPhone);
-                webView.loadUrl(mainUrl);
 
                 ArrayAdapter colorSelectAdapter = new ArrayAdapter(context,
                         android.R.layout.simple_spinner_item, phoneColorMap.get(selectedPhone).keySet().toArray());
@@ -223,7 +219,26 @@ public class MainActivity extends AppCompatActivity {
 //
 //    };
 
-    public void setWebView(final int index){
+    public void setWebView(){
+        webView.loadUrl(mainUrl);
+//        webView.setWebChromeClient(new WebChromeClient() {
+//            @Override
+//            public void onProgressChanged (WebView view, int newProgress){
+//                String url = view.getUrl();
+//                if (newProgress == 100){
+//                    if (url.equalsIgnoreCase(mainUrl)) {
+//                        loadJavaScript(view, selectPhone() + selectPhoneSubmit());
+//                    } else if (url.equalsIgnoreCase(informationPage)) {
+//                        loadJavaScript(view, inputInformation());
+//                    } else if (url.equalsIgnoreCase(conformPage)) {
+//                        loadJavaScript(view, conformInformation());
+//                    } else {
+//                        Log.w("hck new url", url);
+//                        Toast.makeText(context, url, Toast.LENGTH_LONG).show();
+//                    }
+//                }
+//            }
+//        });
         webView.setWebViewClient(new WebViewClient() {
 //            @Override
 //            public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -248,25 +263,14 @@ public class MainActivity extends AppCompatActivity {
 //                    view.loadUrl("javascript:(function() { " +
 //                            selectPhone("402000922") +
 //                            "})()");
-                    if (index == 1) {
-                        loadJavaScript(view,  selectPhone());
-                    }else if (index == 2) {
-                        loadJavaScript(view, selectPhoneSubmit());
-                    }else if (index == 0) {
-                        autoFill.setEnabled(true);
-                        next.setEnabled(true);
-                    }
+                    loadJavaScript(view, selectPhone() + selectPhoneSubmit());
                 } else if (url.equalsIgnoreCase(informationPage)) {
 //                    view.loadUrl("javascript:(function() { " +
 //                            inputInformation(new InformationData()) +
 //                            "})()");
-                    if (index == 1) {
-                        loadJavaScript(view,  inputInformation());
-                    }else if (index == 2) {
-                        loadJavaScript(view,  inputInformationSubmit());
-                    }
+                    loadJavaScript(view, inputInformation());
                 } else if (url.equalsIgnoreCase(conformPage)) {
-                    loadJavaScript(view,  conformInformation());
+                    loadJavaScript(view, conformInformation());
 //                    view.buildDrawingCache();
 //                    Bitmap bitmap = getBitmapFromURL("https://shop.hkt.com/MobOs/captcha.html");
 //                    Bitmap bitmap = getBitmapFromURL2("http://cdn1.theodysseyonline.com/files/2015/12/20/635861833670816810507191518_6670-perfect-snow-1920x1080-nature-wallpaper.jpg");
@@ -434,6 +438,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String inputInformation(){
+        InformationData data = new InformationData(context);
 //        String javaScript = "$('#customer.title"+((data.isMr())? "1":"2")+"').prop('checked', true);";
         String javaScript = "$('input[value="+((data.isMr())? "Mr":"Ms")+"]').prop('checked', true);";
         javaScript += "$('#lastName').val('" +data.getLastName()+"');";
@@ -490,6 +495,8 @@ public class MainActivity extends AppCompatActivity {
         javaScript += "$('input[type=checkbox]').prop('checked', true);";
         javaScript += "}else{";
         javaScript += "clearInterval(sectionInterval);";
+        javaScript += "$('button[name=submit]').focus();";
+        javaScript += "Android.showToast('Auto fill complete!');";
         javaScript += "}";
         javaScript += "},2000);";
 
@@ -530,6 +537,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String inputInformationSubmit(){
+        InformationData data = new InformationData(context);
         String javaScript = "";
 
         javaScript += "var submitInterval = setInterval(function () {";
@@ -549,6 +557,8 @@ public class MainActivity extends AppCompatActivity {
 
 //        javaScript += "$('#captchaInput').val('');";
         javaScript += "$('#confirmed').prop('checked', true);";
+        javaScript += "$('#captchaInput').focus();";
+        javaScript += "Android.showToast('Auto fill complete!');";
 
 //        javaScript += "var submitInterval = setInterval(function () {";
 //        javaScript += "submitForm();";
@@ -560,7 +570,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        String[] menuItems = {"Profile Data"};
+        String[] menuItems = {"Profile Data", "Select Phone"};
 
         for (int i = 0; i<menuItems.length; i++) {
             menu.add(Menu.NONE, i, i, menuItems[i]);
@@ -586,54 +596,31 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(context, InformationActivity.class);
                 startActivity(intent);
                 return true;
+            case 1:
+                functionBar.setVisibility(View.VISIBLE);
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    public void autoFill(View view){
-        setWebView(1);
+    public void goPage(View view){
+        setWebView();
+        functionBar.setVisibility(View.GONE);
     }
 
-    public void next(View view){
-        setWebView(2);
-    }
+    public class WebAppInterface {
+        Context mContext;
 
-    public Drawable LoadImageFromWebOperations(String url) {
-        try {
-            InputStream is = (InputStream) new URL(url).getContent();
-            Drawable d = Drawable.createFromStream(is, "src name");
-            return d;
-        } catch (Exception e) {
-            return null;
+        /** Instantiate the interface and set the context */
+        WebAppInterface(Context c) {
+            mContext = c;
         }
-    }
 
-    public static Bitmap getBitmapFromURL(String src) {
-        try {
-            URL url = new URL(src);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setDoInput(true);
-            connection.connect();
-            InputStream input = connection.getInputStream();
-            Bitmap myBitmap = BitmapFactory.decodeStream(input);
-            return myBitmap;
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e("Exception",e.getMessage());
-            return null;
-        }
-    }
-
-    public static Bitmap getBitmapFromURL2(String src) {
-        try {
-            URL url = new URL(src);
-            Bitmap myBitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-            return myBitmap;
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e("Exception",e.getMessage());
-            return null;
+        /** Show a toast from the web page */
+        @JavascriptInterface
+        public void showToast(String toast) {
+            Toast.makeText(mContext, toast, Toast.LENGTH_LONG).show();
         }
     }
 }

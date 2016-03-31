@@ -46,10 +46,19 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:text="Go Page"
+                android:id="@+id/goPage"
+                android:onClick="goPage"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:text="Auto Fill"
                 android:id="@+id/autoFill"
                 android:onClick="autoFill"
-                android:enabled="false"/>
+                android:enabled="false"
+                android:visibility="gone"/>
 
             <Button
                 android:layout_width="wrap_content"
@@ -58,7 +67,8 @@
                 android:text="Next Page"
                 android:id="@+id/next"
                 android:onClick="next"
-                android:enabled="false"/>
+                android:enabled="false"
+                android:visibility="gone"/>
 
         </LinearLayout>
     </LinearLayout>
