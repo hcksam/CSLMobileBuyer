@@ -1,4 +1,4 @@
-package hck.cslmobilebuyer;
+package hck.cslmobilebuyer.common;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -52,7 +52,6 @@ public class SettingHandler {
             FileOutputStream fos = new FileOutputStream(file);
             OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");
             BufferedWriter bw = new BufferedWriter(osw);
-//            Log.w("hck writeFile", String.valueOf(content.size()));
 
             for (String line:content){
                 line = line.replaceAll("\\n", "\r\n");

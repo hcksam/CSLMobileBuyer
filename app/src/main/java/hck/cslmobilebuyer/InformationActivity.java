@@ -9,6 +9,8 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
+import hck.cslmobilebuyer.common.InformationData;
+
 public class InformationActivity extends AppCompatActivity {
     Context context;
     InformationData data;
@@ -62,8 +64,6 @@ public class InformationActivity extends AppCompatActivity {
     }
 
     public void setTextData(){
-        InformationData placeHolder = new InformationData();
-
         if (data.isMr()){
             isMr.setChecked(true);
         }else{
@@ -87,24 +87,7 @@ public class InformationActivity extends AppCompatActivity {
         deliveryDateDP.setText(data.getDeliveryDateDP());
         timeslotList.setText(data.getTimeslotList());
 
-        deliveryDateDP.setHint(InformationData.dateFormat.toPattern()+" (At least next working day)");
-
-//        lastName.setHint(placeHolder.getLastName());
-//        firstName.setHint(placeHolder.getFirstName());
-//        contactPhone.setHint(placeHolder.getContactPhone());
-//        emailAddr.setHint(placeHolder.getEmailAddr());
-//        cCHolderName.setHint(placeHolder.getcCHolderName());
-//        unitNo.setHint(placeHolder.getUnitNo());
-//        floorNo.setHint(placeHolder.getFloorNo());
-//        buildNo.setHint(placeHolder.getBuildNo());
-//        strNo.setHint(placeHolder.getStrNo());
-//        strName.setHint(placeHolder.getStrName());
-//        deliveryStCatDescSelect.setHint(placeHolder.getDeliveryStCatDescSelect());
-//        areaSelectDelivery.setHint(placeHolder.getAreaSelectDelivery());
-//        districtSelectDelivery.setHint(placeHolder.getDistrictSelectDelivery());
-//        sectionSelectDelivery.setHint(placeHolder.getSectionSelectDelivery());
-//        deliveryDateDP.setHint(placeHolder.getDeliveryDateDP());
-//        timeslotList.setHint(placeHolder.getTimeslotList());
+        deliveryDateDP.setHint(InformationData.dateFormat.toPattern()+" (At least two working day)");
     }
 
     public void setData(){
@@ -139,7 +122,6 @@ public class InformationActivity extends AppCompatActivity {
             menu.add(Menu.NONE, i, i, menuItems[i]);
         }
 
-//        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -151,9 +133,6 @@ public class InformationActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-//        if (id == R.id.action_settings) {
-//            return true;
-//        }
         switch(id) {
             case 0:
                 finish();
@@ -180,19 +159,4 @@ public class InformationActivity extends AppCompatActivity {
 
         super.onBackPressed();
     }
-
-//    public void onRadioButtonClicked(View view) {
-//        boolean checked = ((RadioButton) view).isChecked();
-//
-//        switch(view.getId()) {
-//            case R.id.isMr:
-//                if (checked)
-//                    data.setIsMr(true);
-//                    break;
-//            case R.id.isMs:
-//                if (checked)
-//                    data.setIsMr(false);
-//                    break;
-//        }
-//    }
 }

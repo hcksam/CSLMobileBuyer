@@ -1,4 +1,4 @@
-package hck.cslmobilebuyer;
+package hck.cslmobilebuyer.common;
 
 import android.content.Context;
 
