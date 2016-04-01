@@ -2,8 +2,10 @@ package hck.cslmobilebuyer;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,6 +25,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity {
@@ -39,6 +43,11 @@ public class MainActivity extends AppCompatActivity {
     String mainUrl;
     String selectedPhone;
     String selectedColor;
+    int havePhoneIndex;
+    Thread webViewThread;
+    boolean pageFinish;
+    boolean javascriptFinish;
+    InformationData webData;
 //    String[] selectedPhones = {"402000923", "402000925", "402000924"};
 //    final String S7EdgePage = "https://shop.hkt.com/MobOs/stsadditem.html?modelId=609";
 //    final String S7Page = "https://shop.hkt.com/MobOs/stsadditem.html?modelId=608";
@@ -95,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
 
         selectedPhone = "NOTE5";
         mainUrl = phoneMap.get(selectedPhone);
+        webData = new InformationData(context);
 //        URL = "http://ddns.toraou.com:8888/TestHtml/csl%20Online%20Shop.html";
 //        URL = "https://shop.hkt.com/MobOs/stsadditem.html?modelId=609";
 //        String url = "https://www.hkcsl.com/tc/online-shop-standalone-handset-price/";
@@ -221,50 +231,60 @@ public class MainActivity extends AppCompatActivity {
 //    };
 
     public void setWebView(){
-        loadingCount = new HashMap<>();
-        loadingCount.put(mainUrl, 0);
-        loadingCount.put(informationPage, 0);
-        loadingCount.put(conformPage, 0);
-        clearCookie();
-
+        webView.setVisibility(View.VISIBLE);
         webView.loadUrl(mainUrl);
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onProgressChanged (WebView view, int newProgress){
                 String url = view.getUrl();
 
-//                if (newProgress == 0){
-//                    loading.setVisibility(View.VISIBLE);
-//                }
-
                 if (newProgress == 100){
                     int count = loadingCount.get(url);
-
                     if (count == 0) {
-                        if (loading.getVisibility() != View.VISIBLE){
-                            loading.setVisibility(View.VISIBLE);
+                        javascriptFinish = true;
+                        if (pageFinish){
+                           addJavaScript(view, url);
                         }
-                        if (url.equalsIgnoreCase(mainUrl)) {
-                            loadJavaScript(view, selectPhone() + selectPhoneSubmit());
-                        } else if (url.equalsIgnoreCase(informationPage)) {
-                            loadJavaScript(view, inputInformation());
-                        } else if (url.equalsIgnoreCase(conformPage)) {
-                            loadJavaScript(view, conformInformation());
-                        } else {
-                            Log.w("hck newUrl", url);
-//                        Toast.makeText(context, url, Toast.LENGTH_LONG).show();
-                        }
-                        loadingCount.put(url, ++count);
+//                        loading.setVisibility(View.VISIBLE);
+//                        if (url.equalsIgnoreCase(mainUrl)) {
+//                            loadJavaScript(view, checkInventory() + selectPhone() + selectPhoneSubmit());
+//                        } else if (url.equalsIgnoreCase(informationPage)) {
+//                            loadJavaScript(view, inputInformation());
+//                        } else if (url.equalsIgnoreCase(conformPage)) {
+//                            loadJavaScript(view, conformInformation());
+//                        } else {
+//                            Log.w("hck newUrl", url);
+////                        Toast.makeText(context, url, Toast.LENGTH_LONG).show();
+//                        }
+//                        loadingCount.put(url, ++count);
                     }
-//                    else{
-//                        Toast.makeText(context, url+"\n"+count, Toast.LENGTH_LONG).show();
-//                    }
                 }
             }
+
+//            @Override
+//            public boolean onConsoleMessage(ConsoleMessage cm) {
+////                Log.d("MyApplication", cm.message() + " -- From line "
+////                        + cm.lineNumber() + " of "
+////                        + cm.sourceId() );
+//                Toast.makeText(context, "ERROR:" + cm.message() + " -- From line "
+//                        + cm.lineNumber() + " of "
+//                        + cm.sourceId(), Toast.LENGTH_LONG).show();
+//                return true;
+//            }
         });
         webView.setWebViewClient(new WebViewClient() {
             @Override
+            public void onPageStarted (WebView view, String url, Bitmap favicon){
+                pageFinish = false;
+                javascriptFinish = false;
+            }
+
+            @Override
             public void onPageFinished(WebView view, String url) {
+                pageFinish = true;
+                if (javascriptFinish){
+                    addJavaScript(view, url);
+                }
 //                loading.setVisibility(View.VISIBLE);
 //                loadingUrl = url;
 //                if (url.equalsIgnoreCase(mainUrl)) {
@@ -277,8 +297,20 @@ public class MainActivity extends AppCompatActivity {
 //                    Log.w("hck new url", url);
 //                    Toast.makeText(context, url, Toast.LENGTH_LONG).show();
 //                }
+//                int count = loadingCount.get(url);
+//                loadingCount.put(url, ++count);
                 super.onPageFinished(view, url);
             }
+
+//            @Override
+//            public void onReceivedError (WebView view, WebResourceRequest request, WebResourceError error){
+////                Toast.makeText(context, "Conflict! Last web is not complete close!", Toast.LENGTH_LONG).show();
+//            }
+//
+//            @Override
+//            public void onReceivedSslError (WebView view, SslErrorHandler handler, SslError error) {
+////                handler.proceed() ;
+//            }
         });
 
 //        webView.setWebViewClient(new WebViewClient() {
@@ -356,6 +388,13 @@ public class MainActivity extends AppCompatActivity {
 ////
 ////            }
 //        });
+
+//        webView.stopLoading();
+//        if (webViewThread != null){
+//            webViewThread.interrupt();
+//        }
+//        webViewThread = new loadUrlThread(webView, mainUrl);
+//        webViewThread.start();
     }
 
     private void loadJavaScript(WebView view, String javaScript){
@@ -375,10 +414,27 @@ public class MainActivity extends AppCompatActivity {
         return javaScript;
     }
 
+    private String checkInventory(){
+        String javaScript = "";
+        javaScript += "var phone = $('input[type=radio][name=color][value="+phoneColorMap.get(selectedPhone).get(selectedColor)+"]');";
+        javaScript += "var index = 0;";
+        javaScript += "if (phone.is(':disabled')){";
+        javaScript += "index = -1;";
+        javaScript += "Android.OOS();";
+        javaScript += "}else{";
+        javaScript += "index = 1;";
+//        javaScript += "Android.have();";
+        javaScript += "}";
+        return javaScript;
+    }
+
     private String selectPhone(){
 //        Toast.makeText(context, "selectPhone", Toast.LENGTH_LONG).show();
 //        String javaScript = "";
-        String javaScript = "var color = $('input[type=radio][name=color]');";
+        String javaScript = "";
+        javaScript += "if (index > 0){";
+
+        javaScript += "var color = $('input[type=radio][name=color]');";
         javaScript += "var price = $('input[type=radio][name=promoTypeId]');";
 //        javaScript += "$('body').append('test');";
 //        javaScript += "$('body').append( $('#dialog-promoCode').parent().css('display'));";
@@ -452,11 +508,14 @@ public class MainActivity extends AppCompatActivity {
 //        javaScript += "runSAHS().done(runPromo);";
 //        javaScript += "runPromo().done(runCheckout);";
 
+        javaScript += "}";
+
         return javaScript;
     }
 
     private String selectPhoneSubmit(){
         String javaScript = "";
+        javaScript += "if (index > 0){";
 
         javaScript += "$('#sahsButton').click();";
         javaScript += "var checkoutInterval = null;";
@@ -476,6 +535,7 @@ public class MainActivity extends AppCompatActivity {
         javaScript += "}";
         javaScript += "},1000);";
 
+        javaScript += "}";
         return javaScript;
     }
 
@@ -593,6 +653,40 @@ public class MainActivity extends AppCompatActivity {
         return javaScript;
     }
 
+    private String saveProfileData(){
+        String javaScript = "";
+
+//        javaScript += "function saveProfile(){";
+//        javaScript += "var isMr;";
+//        javaScript += "if ($('input[value=Mr]').prop('checked') == true){";
+//        javaScript += "isMr = 'true';";
+//        javaScript += "}else{";
+//        javaScript += "isMr = 'false';";
+//        javaScript += "}";
+//        javaScript += "var lastName = $('#lastName').val();";
+//        javaScript += "var firstName = $('#firstName').val();";
+//        javaScript += "var contactPhone = $('#contactPhone').val();";
+//        javaScript += "var emailAddr = $('#emailAddr').val();";
+//        javaScript += "var cCHolderName = $('#cCHolderName').val();";
+//        javaScript += "var unitNo = $('#unitNo').val();";
+//        javaScript += "var floorNo = $('#floorNo').val();";
+//        javaScript += "var buildNo = $('#buildNo').val();";
+//        javaScript += "var strNo = $('#strNo').val();";
+//        javaScript += "var strName = $('#strName').val();";
+//        javaScript += "var deliveryStCatDescSelect = $('#deliveryStCatDescSelect').val();";
+//        javaScript += "var areaSelectDelivery = $('#areaSelectDelivery').val();";
+//        javaScript += "var districtSelectDelivery = $('#districtSelectDelivery').val();";
+//        javaScript += "var sectionSelectDelivery = $('#sectionSelectDelivery').val();";
+//        javaScript += "var deliveryDateDP = $('#deliveryDateDP').val();";
+//        javaScript += "var timeslotList = $('#timeslotList').val();";
+//        javaScript += "Android.setFormData(isMr, lastName, firstName, contactPhone, emailAddr, cCHolderName, unitNo, floorNo, buildNo, strNo, strName, deliveryStCatDescSelect, areaSelectDelivery, districtSelectDelivery, sectionSelectDelivery, deliveryDateDP, timeslotList);";
+//        javaScript += "};";
+
+        javaScript += "$('button[name=submit]').parent().append('<button type=\"button\" id=\"androidSaveProfile\" name=\"androidSaveProfile\" class=\"blackbtn\" style=\"float: right\" onclick=\"saveProfile()\" >Android Save Profile Data</button>');";
+
+        return javaScript;
+    }
+
     private String conformInformation(){
 //        String javaScript = "$('#customer.title"+((data.isMr())? "1":"2")+"').prop('checked', true);";
 //        String javaScript = "/MobOs/captcha.html";
@@ -649,8 +743,54 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void goPage(View view){
+        havePhoneIndex = 0;
+//        webView.stopLoading();
+        resetWebView();
         setWebView();
         functionBar.setVisibility(View.GONE);
+    }
+
+    public void resetWebView(){
+        loadingCount = new HashMap<>();
+        loadingCount.put(mainUrl, 0);
+        loadingCount.put(informationPage, 0);
+        loadingCount.put(conformPage, 0);
+        clearCookie();
+
+//        webView.removeAllViews();
+//        webView.setWebChromeClient(null);
+//        webView.setWebViewClient(null);
+//        webView.removeAllViewsInLayout();
+//        webView.removeJavascriptInterface("Android");
+//        webView.getSettings().setJavaScriptEnabled(false);
+//
+//        if (Build.VERSION.SDK_INT < 18) {
+//            webView.clearView();
+//        } else {
+//            webView.loadUrl("about:blank");
+//        }
+//        webView = (WebView) findViewById(R.id.webView);
+//        webView.getSettings().setJavaScriptEnabled(true);
+//        webView.addJavascriptInterface(new WebAppInterface(this), "Android");
+    }
+
+    private void addJavaScript(WebView view, String url){
+        int count = loadingCount.get(url);
+        if (count == 0) {
+            loading.setVisibility(View.VISIBLE);
+            if (url.equalsIgnoreCase(mainUrl)) {
+                loadJavaScript(view, checkInventory() + selectPhone() + selectPhoneSubmit());
+            } else if (url.equalsIgnoreCase(informationPage)) {
+                injectScriptFile(view, "js/script.js");
+                loadJavaScript(view, inputInformation() + saveProfileData());
+            } else if (url.equalsIgnoreCase(conformPage)) {
+                loadJavaScript(view, conformInformation());
+            } else {
+                Log.w("hck newUrl", url);
+//                        Toast.makeText(context, url, Toast.LENGTH_LONG).show();
+            }
+            loadingCount.put(url, ++count);
+        }
     }
 
     public class WebAppInterface {
@@ -668,16 +808,102 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @JavascriptInterface
+        public void OOS() {
+            runOnUiThread(new Runnable() {
+                public void run() {
+//                    havePhoneIndex = -1;
+//                    webView.stopLoading();
+//                    webView.clearFocus();
+                    functionBar.setVisibility(View.VISIBLE);
+                    loading.setVisibility(View.GONE);
+                    webView.setVisibility(View.INVISIBLE);
+                    Toast.makeText(mContext, "Out of stock!", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        @JavascriptInterface
         public void hideLoading() {
             runOnUiThread(new Runnable() {
                 public void run(){
-                    if (loading.getVisibility() != View.GONE) {
-                        loading.setVisibility(View.GONE);
-                    }
+                    loading.setVisibility(View.GONE);
                 }
             });
 
             Toast.makeText(mContext, "Auto fill complete!", Toast.LENGTH_SHORT).show();
         }
+
+        @JavascriptInterface
+        public void setFormData(String isMr, String lastName, String firstName, String contactPhone, String emailAddr, String cCHolderName, String unitNo, String floorNo, String buildNo, String strNo, String strName, String deliveryStCatDescSelect, String areaSelectDelivery, String districtSelectDelivery, String sectionSelectDelivery, String deliveryDateDP, String timeslotList) {
+            int c = 0;
+            webData.getData().set(c++, isMr);
+            webData.getData().set(c++, lastName);
+            webData.getData().set(c++, firstName);
+            webData.getData().set(c++, contactPhone);
+            webData.getData().set(c++, emailAddr);
+            webData.getData().set(c++, cCHolderName);
+            webData.getData().set(c++, unitNo);
+            webData.getData().set(c++, floorNo);
+            webData.getData().set(c++, buildNo);
+            webData.getData().set(c++, strNo);
+            webData.getData().set(c++, strName);
+            webData.getData().set(c++, deliveryStCatDescSelect);
+            webData.getData().set(c++, areaSelectDelivery);
+            webData.getData().set(c++, districtSelectDelivery);
+            webData.getData().set(c++, sectionSelectDelivery);
+            webData.getData().set(c++, deliveryDateDP);
+            webData.getData().set(c++, timeslotList);
+
+            webData.setAllData();
+            boolean done = webData.saveData();
+
+            if (done) {
+                Toast.makeText(mContext, "Profile Data Save Success", Toast.LENGTH_SHORT).show();
+            }else{
+                Toast.makeText(mContext, "Profile Data Save Fail!", Toast.LENGTH_LONG).show();
+            }
+        }
     }
+
+    private void injectScriptFile(WebView view, String scriptFile) {
+        InputStream input;
+        try {
+            input = getAssets().open(scriptFile);
+            byte[] buffer = new byte[input.available()];
+            input.read(buffer);
+            input.close();
+
+            // String-ify the script byte-array using BASE64 encoding !!!
+            String encoded = Base64.encodeToString(buffer, Base64.NO_WRAP);
+            view.loadUrl("javascript:(function() {" +
+                    "var parent = document.getElementsByTagName('head').item(0);" +
+                    "var script = document.createElement('script');" +
+                    "script.type = 'text/javascript';" +
+                    // Tell the browser to BASE64-decode the string into your script !!!
+                    "script.innerHTML = window.atob('" + encoded + "');" +
+                    "parent.appendChild(script)" +
+                    "})()");
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+//    public class loadUrlThread extends Thread {
+//        private WebView  webView;
+//        private String url;
+//
+//        loadUrlThread(WebView  webView, String url) {
+//            this.webView = webView;
+//            this.url = url;
+//        }
+//
+//        public void run() {
+//            runOnUiThread(new Runnable() {
+//                public void run(){
+//                    webView.loadUrl(url);
+//                }
+//            });
+//        }
+//    }
 }

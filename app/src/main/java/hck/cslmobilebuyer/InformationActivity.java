@@ -173,9 +173,9 @@ public class InformationActivity extends AppCompatActivity {
         boolean done = data.saveData();
 
         if (!done){
-            Toast.makeText(context, "Save data error!", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, "Save Data Error!", Toast.LENGTH_LONG).show();
         }else{
-            Toast.makeText(context, "Success", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, "Save Data Success", Toast.LENGTH_LONG).show();
         }
 
         super.onBackPressed();
