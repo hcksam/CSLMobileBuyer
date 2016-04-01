@@ -526,14 +526,14 @@ public class MainActivity extends AppCompatActivity {
         javaScript += "$('#submitButton').click();";
         javaScript += "clearInterval(promoInterval);";
         javaScript += "}";
-        javaScript += "},1000);";
+        javaScript += "},2000);";
 
         javaScript += "checkoutInterval = setInterval(function () {";
         javaScript += "if ($('#dialog-cart').parent().css('display') != 'none'){";
         javaScript += "$('#checkoutButton').click();";
         javaScript += "clearInterval(checkoutInterval);";
         javaScript += "}";
-        javaScript += "},1000);";
+        javaScript += "},2000);";
 
         javaScript += "}";
         return javaScript;

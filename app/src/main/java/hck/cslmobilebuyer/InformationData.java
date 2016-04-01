@@ -118,14 +118,14 @@ public class InformationData {
         isMr = true;
         lastName = "CHAN";
         firstName = "TAI MAN";
-        contactPhone = "51300568";
-        emailAddr = "chy@ibbs.hk";
+        contactPhone = "91231234";
+        emailAddr = "ctm@ibbs.hk";
         cCHolderName = "CHAN TAI MAN";
         unitNo = "A";
-        floorNo = "1";
-        buildNo = "";
+        floorNo = "1/F";
+        buildNo = "ABC House";
         strNo = "123";
-        strName = "HK";
+        strName = "HK Street";
         deliveryStCatDescSelect = "ST";
         areaSelectDelivery = "HK";
         districtSelectDelivery = "124";
@@ -140,7 +140,7 @@ public class InformationData {
 
     public static Date getNextDate(){
         Date date;
-        date = addDays(new Date(), 1);
+        date = addDays(new Date(), 2);
         while (isHoliday(date)) {
             date = addDays(date, 1);
         }
