@@ -135,12 +135,16 @@ public class InformationData {
     }
 
     public static String getNextDay(){
-        return dateFormat.format(getNextDate());
+        return dateFormat.format(getNextDate(getNextDate()));
     }
 
     public static Date getNextDate(){
+        return getNextDate(new Date());
+    }
+
+    public static Date getNextDate(Date inDate){
         Date date;
-        date = addDays(new Date(), 2);
+        date = addDays(inDate, 1);
         while (isHoliday(date)) {
             date = addDays(date, 1);
         }
