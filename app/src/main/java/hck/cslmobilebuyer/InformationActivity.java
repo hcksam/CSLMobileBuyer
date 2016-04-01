@@ -63,6 +63,53 @@ public class InformationActivity extends AppCompatActivity {
         setTextData();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        String[] menuItems = {"Not Save", "Reset"};
+
+        for (int i = 0; i<menuItems.length; i++) {
+            menu.add(Menu.NONE, i, i, menuItems[i]);
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        switch(id) {
+            case 0:
+                finish();
+                return true;
+            case 1:
+                data.setDataDefault();
+                setTextData();
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        setData();
+        boolean done = data.saveData();
+
+        if (!done){
+            Toast.makeText(context, "Save Data Error!", Toast.LENGTH_LONG).show();
+        }else{
+            Toast.makeText(context, "Save Data Success", Toast.LENGTH_LONG).show();
+        }
+
+        super.onBackPressed();
+    }
+
     public void setTextData(){
         if (data.isMr()){
             isMr.setChecked(true);
@@ -111,52 +158,5 @@ public class InformationActivity extends AppCompatActivity {
         data.getData().set(c++, timeslotList.getText().toString());
 
         data.setAllData();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        String[] menuItems = {"Not Save", "Reset"};
-
-        for (int i = 0; i<menuItems.length; i++) {
-            menu.add(Menu.NONE, i, i, menuItems[i]);
-        }
-
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        switch(id) {
-            case 0:
-                finish();
-                return true;
-            case 1:
-                data.setDataDefault();
-                setTextData();
-                return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onBackPressed() {
-        setData();
-        boolean done = data.saveData();
-
-        if (!done){
-            Toast.makeText(context, "Save Data Error!", Toast.LENGTH_LONG).show();
-        }else{
-            Toast.makeText(context, "Save Data Success", Toast.LENGTH_LONG).show();
-        }
-
-        super.onBackPressed();
     }
 }
